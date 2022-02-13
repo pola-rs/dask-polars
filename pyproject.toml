@@ -11,3 +11,12 @@ requires-python = ">=3.7"
 
 [tool.isort]
 profile = "black"
+
+[tool.mypy]
+warn_unused_ignores = true
+show_error_codes = true
+files = ["dask_polars"]
+
+[[tool.mypy.overrides]]
+module = ["dask.*"]
+ignore_missing_imports = true

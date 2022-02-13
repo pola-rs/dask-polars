@@ -18,5 +18,6 @@ fmt: .venv
 
 lint: .venv
 	@.venv/bin/flake8 .
+	@.venv/bin/mypy
 
 pre-commit: fmt lint
