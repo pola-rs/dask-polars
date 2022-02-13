@@ -1,23 +1,30 @@
 import numbers
 import operator
-from typing import Dict, Type
 
 import dask
 import polars as pl
 from dask.utils import apply, funcname
 
 
-class DataFrameMetaData:
-    def __init__(self, schema: Dict[str, Type[pl.DataType]]):
-        self.schema = schema
+def create_empty_df(df: pl.DataFrame) -> pl.DataFrame:
+    """
+    Create an empty polars DataFrame without increasing the reference count
+
+    Parameters
+    ----------
+    df
+        DataFrame to create an empty from
+    """
+    return pl.DataFrame(
+        [pl.Series(name, [], dtype=dtype) for name, dtype in zip(df.columns, df.dtypes)]
+    )
 
 
 class DataFrame(dask.base.DaskMethodsMixin):
-    def __init__(
-        self, name: str, graph: dict, meta: DataFrameMetaData, npartitions: int
-    ):
+    def __init__(self, name: str, graph: dict, meta: pl.DataFrame, npartitions: int):
         self._name = name
         self._graph = graph
+        # also used as identity in folds
         self._meta = meta
         self.npartitions = npartitions
 
@@ -73,6 +80,4 @@ def from_dataframe(df: pl.DataFrame, npartitions: int = 1) -> DataFrame:
     name = "from-dataframe-" + dask.base.tokenize(df)
     graph = {(name, 0): df}
 
-    meta = DataFrameMetaData(df.schema)
-
-    return DataFrame(name, graph, meta, npartitions)
+    return DataFrame(name, graph, create_empty_df(df), npartitions)
