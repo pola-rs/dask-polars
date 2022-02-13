@@ -2,12 +2,12 @@ import numbers
 import operator
 
 import dask
-import polars
+import polars as pl
 from dask.utils import apply, funcname
 
 
 class DataFrame(dask.base.DaskMethodsMixin):
-    def __init__(self, name, graph, meta, npartitions):
+    def __init__(self, name: str, graph, meta, npartitions: int):
         self._name = name
         self._graph = graph
         self._meta = meta
@@ -26,7 +26,7 @@ class DataFrame(dask.base.DaskMethodsMixin):
     __dask_scheduler__ = staticmethod(dask.threaded.get)
 
     def __dask_postcompute__(self):
-        return polars.concat, ()
+        return pl.concat, ()
 
     def __dask_tokenize__(self):
         return self._name
@@ -45,26 +45,22 @@ class DataFrame(dask.base.DaskMethodsMixin):
             return NotImplemented
         return self.map_partitions(operator.add, other)
 
-    def head(self, length=5):
+    def head(self, length: int = 5):
         name = "head-" + dask.base.tokenize(self, length)
-        graph = {
-            (name, 0): (polars.DataFrame.head, self._graph[(self._name, 0)], length)
-        }
+        graph = {(name, 0): (pl.DataFrame.head, self._graph[(self._name, 0)], length)}
         return DataFrame(name, {**self._graph, **graph}, self._meta, 1)
 
     def sum(self):
-        tmp = self.map_partitions(polars.DataFrame.sum)
+        tmp = self.map_partitions(pl.DataFrame.sum)
         name = "sum-" + dask.base.tokenize(tmp)
-        graph = {
-            (name, 0): (polars.DataFrame.sum, (polars.concat, tmp.__dask_keys__()))
-        }
+        graph = {(name, 0): (pl.DataFrame.sum, (pl.concat, tmp.__dask_keys__()))}
         return DataFrame(name, {**tmp._graph, **graph}, self._meta.sum(), 1)
 
     def __repr__(self):
         return self.head().compute().__repr__()
 
 
-def from_dataframe(df: polars.DataFrame, npartitions=1) -> DataFrame:
+def from_dataframe(df: pl.DataFrame, npartitions: int = 1) -> DataFrame:
     assert npartitions == 1
     name = "from-dataframe-" + dask.base.tokenize(df)
     graph = {(name, 0): df}
