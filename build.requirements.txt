@@ -1,0 +1,9 @@
+# dependencies
+polars
+dask
+
+# tooling
+pytest==6.2.5
+black==21.6b0
+isort~=5.9.2
+flake8~=4.0.1

@@ -1,0 +1,13 @@
+[project]
+name = "dask_polars"
+license = "BSD"
+
+dependencies = [
+    "polars",
+    "dask"
+]
+
+requires-python = ">=3.7"
+
+[tool.isort]
+profile = "black"

@@ -1,9 +1,9 @@
 import numbers
 import operator
 
-import polars
 import dask
-from dask.utils import funcname, apply
+import polars
+from dask.utils import apply, funcname
 
 
 class DataFrame(dask.base.DaskMethodsMixin):
