@@ -1,13 +1,21 @@
 import numbers
 import operator
+from typing import Dict, Type
 
 import dask
 import polars as pl
 from dask.utils import apply, funcname
 
 
+class DataFrameMetaData:
+    def __init__(self, schema: Dict[str, Type[pl.DataType]]):
+        self.schema = schema
+
+
 class DataFrame(dask.base.DaskMethodsMixin):
-    def __init__(self, name: str, graph, meta, npartitions: int):
+    def __init__(
+        self, name: str, graph: dict, meta: DataFrameMetaData, npartitions: int
+    ):
         self._name = name
         self._graph = graph
         self._meta = meta
@@ -65,4 +73,6 @@ def from_dataframe(df: pl.DataFrame, npartitions: int = 1) -> DataFrame:
     name = "from-dataframe-" + dask.base.tokenize(df)
     graph = {(name, 0): df}
 
-    return DataFrame(name, graph, df.head(0), npartitions)
+    meta = DataFrameMetaData(df.schema)
+
+    return DataFrame(name, graph, meta, npartitions)
